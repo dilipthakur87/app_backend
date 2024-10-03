@@ -1,0 +1,56 @@
+version: '3.8'
+services:
+  flask:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: note_reminder
+    ports:
+      - "5500:5500"
+    environment:
+      - FLASK_APP=app.api:app
+      - FLASK_ENV=development
+      - PORT=5500
+      - REDIS_URL=redis://redis
+      - SECRET_KEY=random-secret-key-123-!@#
+      - DATABASE_URL=notes.db
+    volumes:
+       - ./instance:/app/app/instance
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile.celery
+    container_name: celery_worker
+    environment:
+      - FLASK_APP=app.api:app
+      - FLASK_ENV=development
+      - PORT=5500
+      - REDIS_URL=redis://redis
+      - SECRET_KEY=random-secret-key-123-!@#
+      - DATABASE_URL=notes.db
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+       - ./instance:/app/app/instance
+    depends_on:
+      - redis
+      - flask
+    networks:
+      - app-network
+
+  redis:
+    image: redis:6-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
