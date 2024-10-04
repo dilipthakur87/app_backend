@@ -2,6 +2,7 @@ from celery import Celery
 from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
+from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 
 from .config import Config
@@ -20,3 +21,6 @@ celery =  Celery(
     )
 celery.conf.update(app.config)
 # celery.conf.update(broker_connection_retry_on_startup=True)
+
+mail = Mail()
+mail.init_app(app)
